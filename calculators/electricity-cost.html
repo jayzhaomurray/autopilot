@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3D Printer Electricity Cost Calculator — Power Cost per Print | PrintBench</title>
+<meta name="description" content="Free calculator for the electricity cost of a 3D print. Enter printer wattage, print time, and your power rate to see cost per print and per hour.">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header>
+  <a class="brand" href="../index.html">Print<span>Bench</span></a>
+  <nav>
+    <a href="../index.html">Calculators</a>
+    <a href="../about.html">About</a>
+  </nav>
+</header>
+<main>
+  <h1>3D Printer Electricity Cost Calculator</h1>
+  <p class="lead">Estimate what a print costs to run. Most desktop FDM printers draw far less
+  power than people expect — this tells you the real number for your machine and rate.</p>
+
+  <div class="calc">
+    <div class="grid2">
+      <div class="field">
+        <label for="watts">Average power draw (watts)</label>
+        <input id="watts" type="number" min="0" step="1" value="120">
+      </div>
+      <div class="field">
+        <label for="rate">Electricity rate (per kWh)</label>
+        <input id="rate" type="number" min="0" step="0.01" value="0.17">
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label for="hours">Print time — hours</label>
+        <input id="hours" type="number" min="0" step="0.1" value="6">
+      </div>
+      <div class="field">
+        <label for="mins">Print time — extra minutes</label>
+        <input id="mins" type="number" min="0" step="1" value="30">
+      </div>
+    </div>
+    <div class="result" id="result" aria-live="polite"></div>
+  </div>
+
+  <h2>How this is calculated</h2>
+  <p>Energy used is <em>average watts × hours ÷ 1000</em> (giving kilowatt-hours), and cost is
+  that energy times your per-kWh rate:</p>
+  <p><code>cost = (watts × hours ÷ 1000) × rate per kWh</code></p>
+  <p>The key word is <strong>average</strong> draw. A printer's heated bed and hotend pull a lot
+  during warm-up, then cycle on and off during the print, so the average over a job is well
+  below the nameplate maximum.</p>
+
+  <h2>Typical average power draw (FDM)</h2>
+  <table>
+    <tr><th>Printer type</th><th>Typical average</th></tr>
+    <tr><td>Small printer, no heated bed</td><td>50–80 W</td></tr>
+    <tr><td>Common desktop, heated bed ~60 °C</td><td>100–150 W</td></tr>
+    <tr><td>Large-bed / enclosed, high-temp materials</td><td>150–300 W</td></tr>
+  </table>
+  <p>Measuring with a cheap plug-in energy meter gives you the exact figure for your machine.</p>
+</main>
+<footer>
+  <div class="disclosure">⚙️ Built with AI assistance. Figures are typical ranges, not specs for
+  any specific model — measure your own printer for an exact number. The formula is shown above.</div>
+  © PrintBench · <a href="../about.html">About</a>
+</footer>
+<script>
+  const el = id => document.getElementById(id);
+  const ids = ['watts','rate','hours','mins'];
+  function fmt(n){ return '$' + n.toLocaleString(undefined,{minimumFractionDigits:3,maximumFractionDigits:3}); }
+  function calc(){
+    const w = parseFloat(el('watts').value)||0;
+    const rate = parseFloat(el('rate').value)||0;
+    const h = (parseFloat(el('hours').value)||0) + (parseFloat(el('mins').value)||0)/60;
+    const kwh = w*h/1000;
+    const cost = kwh*rate;
+    const perHour = h>0 ? cost/h : 0;
+    el('result').innerHTML = '<span class="big">'+fmt(cost)+'</span>'+
+      'Electricity for this '+h.toFixed(2)+' h print.<br>'+
+      'Energy: '+kwh.toFixed(3)+' kWh · Cost per hour: '+fmt(perHour);
+  }
+  ids.forEach(id => el(id).addEventListener('input', calc));
+  calc();
+</script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Filament Cost Calculator — What a 3D Print Costs in Material | PrintBench</title>
+<meta name="description" content="Free filament cost calculator. Enter your spool price, spool weight, and part weight to get the exact material cost of any 3D print. Includes waste allowance.">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header>
+  <a class="brand" href="../index.html">Print<span>Bench</span></a>
+  <nav>
+    <a href="../index.html">Calculators</a>
+    <a href="../about.html">About</a>
+  </nav>
+</header>
+<main>
+  <h1>Filament Cost Calculator</h1>
+  <p class="lead">Find the exact material cost of a print from your spool price and the part's
+  weight. Your slicer reports the gram weight of a sliced model — plug it in below.</p>
+
+  <div class="calc">
+    <div class="grid2">
+      <div class="field">
+        <label for="spoolPrice">Spool price</label>
+        <input id="spoolPrice" type="number" min="0" step="0.01" value="24.00">
+      </div>
+      <div class="field">
+        <label for="spoolWeight">Spool net weight (g)</label>
+        <input id="spoolWeight" type="number" min="1" step="1" value="1000">
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label for="partWeight">Print weight (g, from your slicer)</label>
+        <input id="partWeight" type="number" min="0" step="0.1" value="35">
+      </div>
+      <div class="field">
+        <label for="waste">Waste allowance (%) — purge, supports, fails</label>
+        <input id="waste" type="number" min="0" step="1" value="8">
+      </div>
+    </div>
+    <div class="result" id="result" aria-live="polite"></div>
+  </div>
+
+  <h2>How this is calculated</h2>
+  <p>Cost per gram is simply <em>spool price ÷ spool net weight</em>. The material cost of a
+  print is that rate multiplied by the print's weight, plus a waste allowance for skirt/purge,
+  support material, and the occasional failed print:</p>
+  <p><code>cost = (spool price ÷ spool grams) × print grams × (1 + waste% ÷ 100)</code></p>
+  <p>Use the <strong>net</strong> filament weight, not the gross weight including the spool —
+  a "1&nbsp;kg" spool means 1000&nbsp;g of plastic. A typical empty plastic spool adds
+  180–250&nbsp;g that you should not count.</p>
+
+  <h2>Typical spool weights</h2>
+  <table>
+    <tr><th>Labelled size</th><th>Net filament</th><th>Notes</th></tr>
+    <tr><td>0.5 kg</td><td>500 g</td><td>Sample/specialty sizes</td></tr>
+    <tr><td>1 kg</td><td>1000 g</td><td>The standard spool</td></tr>
+    <tr><td>2.3 kg</td><td>2300 g</td><td>Bulk / refill</td></tr>
+  </table>
+</main>
+<footer>
+  <div class="disclosure">⚙️ Built with AI assistance. The formula above is shown in full so
+  you can verify every result. Sanity-check against your slicer's own cost estimate if it has one.</div>
+  © PrintBench · <a href="../about.html">About</a>
+</footer>
+<script>
+  const ids = ['spoolPrice','spoolWeight','partWeight','waste'];
+  const el = id => document.getElementById(id);
+  function fmt(n){ return '$' + n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function calc(){
+    const price = parseFloat(el('spoolPrice').value)||0;
+    const grams = parseFloat(el('spoolWeight').value)||0;
+    const part = parseFloat(el('partWeight').value)||0;
+    const waste = parseFloat(el('waste').value)||0;
+    const out = el('result');
+    if(grams<=0){ out.innerHTML = 'Enter a spool weight greater than 0.'; return; }
+    const perGram = price/grams;
+    const cost = perGram * part * (1 + waste/100);
+    out.innerHTML = '<span class="big">'+fmt(cost)+'</span>'+
+      'Material cost for this print (incl. '+waste+'% waste).<br>'+
+      'Cost per gram: '+fmt(perGram)+' · Effective grams used: '+(part*(1+waste/100)).toFixed(1)+' g';
+  }
+  ids.forEach(id => el(id).addEventListener('input', calc));
+  calc();
+</script>
+</body>
+</html>
