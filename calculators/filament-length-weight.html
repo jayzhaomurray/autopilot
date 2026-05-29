@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Filament Length ↔ Weight Calculator (grams to meters) | PrintBench</title>
+<meta name="description" content="Convert 3D printing filament between weight and length for any material and diameter. How many meters in a kg of PLA, PETG, ABS, TPU and more.">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header>
+  <a class="brand" href="../index.html">Print<span>Bench</span></a>
+  <nav>
+    <a href="../index.html">Calculators</a>
+    <a href="../about.html">About</a>
+  </nav>
+</header>
+<main>
+  <h1>Filament Length ↔ Weight Calculator</h1>
+  <p class="lead">Convert between grams and meters of filament for any material and diameter —
+  e.g. how many metres are left on a partly-used spool, or how much a model will weigh.</p>
+
+  <div class="calc">
+    <div class="grid2">
+      <div class="field">
+        <label for="material">Material</label>
+        <select id="material">
+          <option value="1.24">PLA (1.24 g/cm³)</option>
+          <option value="1.27">PETG (1.27)</option>
+          <option value="1.04">ABS (1.04)</option>
+          <option value="1.21">TPU (1.21)</option>
+          <option value="1.07">ASA (1.07)</option>
+          <option value="1.14">Nylon / PA (1.14)</option>
+          <option value="1.20">PC (1.20)</option>
+          <option value="custom">Custom density…</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="diameter">Diameter</label>
+        <select id="diameter">
+          <option value="1.75">1.75 mm</option>
+          <option value="2.85">2.85 mm</option>
+          <option value="3.00">3.00 mm</option>
+        </select>
+      </div>
+    </div>
+    <div class="field" id="customWrap" style="display:none">
+      <label for="customDensity">Custom density (g/cm³)</label>
+      <input id="customDensity" type="number" min="0.1" step="0.01" value="1.24">
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label for="mode">I know the…</label>
+        <select id="mode">
+          <option value="weight">Weight → find length</option>
+          <option value="length">Length → find weight</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="amount" id="amountLabel">Weight (g)</label>
+        <input id="amount" type="number" min="0" step="1" value="1000">
+      </div>
+    </div>
+    <div class="result" id="result" aria-live="polite"></div>
+  </div>
+
+  <h2>How this is calculated</h2>
+  <p>Filament is a cylinder. Its volume is the cross-section area times length, and mass is
+  volume times the material's density:</p>
+  <p><code>volume = (π × (diameter ÷ 2)²) × length</code><br>
+  <code>mass = volume × density</code></p>
+  <p>Rearranged, length and weight convert directly given the diameter and density. A standard
+  1&nbsp;kg spool of 1.75&nbsp;mm PLA is about <strong>335&nbsp;m</strong>; the same weight in
+  ABS (lighter) is roughly <strong>400&nbsp;m</strong> because ABS is less dense.</p>
+
+  <h2>Common densities</h2>
+  <table>
+    <tr><th>Material</th><th>Density (g/cm³)</th><th>~Length per kg, 1.75 mm</th></tr>
+    <tr><td>PLA</td><td>1.24</td><td>~335 m</td></tr>
+    <tr><td>PETG</td><td>1.27</td><td>~327 m</td></tr>
+    <tr><td>ABS</td><td>1.04</td><td>~400 m</td></tr>
+    <tr><td>TPU</td><td>1.21</td><td>~343 m</td></tr>
+  </table>
+</main>
+<footer>
+  <div class="disclosure">⚙️ Built with AI assistance. Densities are typical published values
+  and vary by brand and fillers (e.g. wood/metal-fill differ). Formula shown above to verify.</div>
+  © PrintBench · <a href="../about.html">About</a>
+</footer>
+<script>
+  const el = id => document.getElementById(id);
+  function density(){
+    const v = el('material').value;
+    return v==='custom' ? (+el('customDensity').value||0) : +v;
+  }
+  function calc(){
+    const d = +el('diameter').value;            // mm
+    const dens = density();                       // g/cm^3
+    const mode = el('mode').value;
+    const amt = +el('amount').value||0;
+    el('amountLabel').textContent = mode==='weight' ? 'Weight (g)' : 'Length (m)';
+    const areaMm2 = Math.PI * Math.pow(d/2,2);    // mm^2
+    const out = el('result');
+    if(dens<=0){ out.innerHTML='Enter a density greater than 0.'; return; }
+    if(mode==='weight'){
+      const volMm3 = (amt/dens)*1000;             // cm^3 -> mm^3
+      const lenM = volMm3/areaMm2/1000;
+      out.innerHTML = '<span class="big">'+lenM.toFixed(1)+' m</span>'+
+        amt+' g of this filament at '+d+' mm.';
+    } else {
+      const lenMm = amt*1000;
+      const volMm3 = areaMm2*lenMm;
+      const grams = (volMm3/1000)*dens;
+      out.innerHTML = '<span class="big">'+grams.toFixed(0)+' g</span>'+
+        amt+' m of this filament at '+d+' mm.';
+    }
+  }
+  ['material','diameter','mode','amount','customDensity'].forEach(id=>el(id).addEventListener('input',calc));
+  el('material').addEventListener('change',()=>{ el('customWrap').style.display = el('material').value==='custom'?'block':'none'; calc(); });
+  calc();
+</script>
+</body>
+</html>

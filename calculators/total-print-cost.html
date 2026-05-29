@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Total 3D Print Cost Calculator — Material + Electricity + Wear | PrintBench</title>
+<meta name="description" content="Calculate the true all-in cost of a 3D print: filament, electricity, and optional machine wear. Free, instant, and shows the full breakdown.">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header>
+  <a class="brand" href="../index.html">Print<span>Bench</span></a>
+  <nav>
+    <a href="../index.html">Calculators</a>
+    <a href="../about.html">About</a>
+  </nav>
+</header>
+<main>
+  <h1>Total Print Cost Calculator</h1>
+  <p class="lead">The real cost of a print is more than filament. This adds up material,
+  electricity, and optional machine wear so you can price a job or quote properly.</p>
+
+  <div class="calc">
+    <h2 style="margin-top:0">Material</h2>
+    <div class="grid2">
+      <div class="field"><label for="spoolPrice">Spool price</label>
+        <input id="spoolPrice" type="number" min="0" step="0.01" value="24.00"></div>
+      <div class="field"><label for="spoolWeight">Spool net weight (g)</label>
+        <input id="spoolWeight" type="number" min="1" step="1" value="1000"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label for="partWeight">Print weight (g)</label>
+        <input id="partWeight" type="number" min="0" step="0.1" value="35"></div>
+      <div class="field"><label for="waste">Waste/fail allowance (%)</label>
+        <input id="waste" type="number" min="0" step="1" value="8"></div>
+    </div>
+
+    <h2>Electricity</h2>
+    <div class="grid2">
+      <div class="field"><label for="watts">Avg power draw (W)</label>
+        <input id="watts" type="number" min="0" step="1" value="120"></div>
+      <div class="field"><label for="rate">Electricity rate (per kWh)</label>
+        <input id="rate" type="number" min="0" step="0.01" value="0.17"></div>
+    </div>
+    <div class="field"><label for="hours">Print time (hours)</label>
+      <input id="hours" type="number" min="0" step="0.1" value="6.5"></div>
+
+    <h2>Machine wear <span style="color:var(--muted);font-weight:400;font-size:14px">(optional)</span></h2>
+    <div class="grid2">
+      <div class="field"><label for="machineCost">Printer cost (0 to skip)</label>
+        <input id="machineCost" type="number" min="0" step="1" value="0"></div>
+      <div class="field"><label for="lifeHours">Expected life (hours)</label>
+        <input id="lifeHours" type="number" min="0" step="100" value="5000"></div>
+    </div>
+
+    <div class="result" id="result" aria-live="polite"></div>
+  </div>
+
+  <h2>How this is calculated</h2>
+  <p>Three parts, summed:</p>
+  <p><code>material = (spool price ÷ spool g) × print g × (1 + waste%)</code><br>
+  <code>electricity = (watts × hours ÷ 1000) × rate</code><br>
+  <code>wear = (printer cost ÷ life hours) × hours</code> (only if you fill in both)</p>
+  <p>Material and electricity cover almost every hobby print. Add machine wear if you're
+  quoting commercially and want to recover the printer's cost over its life. This intentionally
+  excludes your <em>labour</em> — add that on top when pricing a job for someone else.</p>
+
+  <p style="color:var(--muted);font-size:14px">See also:
+  <a href="filament-cost.html">filament cost only</a> ·
+  <a href="electricity-cost.html">electricity cost only</a>.</p>
+</main>
+<footer>
+  <div class="disclosure">⚙️ Built with AI assistance. Every formula is shown above so you can
+  verify the result. Excludes labour and consumables like nozzles/adhesive.</div>
+  © PrintBench · <a href="../about.html">About</a>
+</footer>
+<script>
+  const el = id => document.getElementById(id);
+  const ids = ['spoolPrice','spoolWeight','partWeight','waste','watts','rate','hours','machineCost','lifeHours'];
+  const money = n => '$' + n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  function calc(){
+    const sp=+el('spoolPrice').value||0, sw=+el('spoolWeight').value||0, pw=+el('partWeight').value||0,
+          waste=+el('waste').value||0, w=+el('watts').value||0, rate=+el('rate').value||0,
+          h=+el('hours').value||0, mc=+el('machineCost').value||0, lh=+el('lifeHours').value||0;
+    if(sw<=0){ el('result').innerHTML='Enter a spool weight greater than 0.'; return; }
+    const material = (sp/sw)*pw*(1+waste/100);
+    const electricity = (w*h/1000)*rate;
+    const wear = (mc>0 && lh>0) ? (mc/lh)*h : 0;
+    const total = material + electricity + wear;
+    el('result').innerHTML = '<span class="big">'+money(total)+'</span>'+
+      'Total cost for this print.<br>'+
+      'Material: '+money(material)+' · Electricity: '+money(electricity)+
+      (wear>0 ? ' · Machine wear: '+money(wear) : '');
+  }
+  ids.forEach(id=>el(id).addEventListener('input',calc));
+  calc();
+</script>
+</body>
+</html>
